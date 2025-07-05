@@ -1,84 +1,100 @@
-// src/pages/DevicesPage.js
-import React, { useEffect, useState } from 'react';
+// src/pages/DevicesPage/DevicesPage.js
+import React, { useState, useMemo } from 'react';
+import { Box, Typography, Grid, FormControl, InputLabel, Select, MenuItem, Alert, CircularProgress } from '@mui/material';
+import DeviceCard from '../../components/DeviceCard/DeviceCard';
+import { useDevices } from '../../hooks/useDevices';
+import styles from './DevicesPage.module.css';
 
-const containerStyle = {
-  maxWidth: '800px',
-  margin: '0 auto',
-  padding: '24px',
-};
+export default function DevicesPage() {
+  const { devices, loading, error } = useDevices();
+  const [view, setView] = useState('esp32'); // 'esp32' | 'raspi'
 
-const gridStyle = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-  gap: '16px',
-};
+  // Construimos la lista de Raspberry Pis únicas
+  const raspberries = useMemo(() => {
+    if (!devices) return [];
+    const uniqIds = Array.from(new Set(devices.map(d => d.raspi_id)));
+    return uniqIds.map(id => ({
+      raspi_id: id,
+      count: devices.filter(d => d.raspi_id === id).length,
+    }));
+  }, [devices]);
 
-const cardStyle = {
-  border: '1px solid #ddd',
-  borderRadius: '8px',
-  padding: '16px',
-  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-};
-
-function DevicesPage() {
-  const [devices, setDevices] = useState(null);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const token = localStorage.getItem('access_token'); // o 'id_token' si prefieres
-
-    if (!token) {
-      setError('No se encontró token de acceso.');
-      return;
-    }
-
-    fetch('https://4koo6afax7.execute-api.us-east-1.amazonaws.com/Prod/devices', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then(data => {
-        setDevices(data);
-      })
-      .catch(err => {
-        console.error('❌ Error al obtener dispositivos:', err);
-        setError(err.message);
-      });
-  }, []);
+  // Seleccionamos qué renderizar
+  const itemsToRender = view === 'esp32' ? devices : raspberries;
 
   return (
-    <div style={containerStyle}>
-      <h1>Dispositivos</h1>
+    <Box className={styles.root} sx={{ minHeight: '100vh' }}>
+      <Box sx={{ p: 2, maxWidth: 900, mx: 'auto' }}>
+        <Typography variant="h4" gutterBottom>
+          Dispositivos
+        </Typography>
 
-      {error && <p style={{ color: 'red' }}>❌ {error}</p>}
+        {loading && (
+          <Box sx={{ textAlign: 'center', py: 4 }}>
+            <CircularProgress />
+          </Box>
+        )}
 
-      {!devices && !error && <p>Cargando dispositivos...</p>}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            ❌ {error}
+          </Alert>
+        )}
 
-      {devices && devices.length === 0 && <p>No hay dispositivos registrados.</p>}
+        {!loading && !error && devices.length === 0 && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            No hay dispositivos registrados.
+          </Alert>
+        )}
 
-      {devices && devices.length > 0 && (
-        <div style={gridStyle}>
-          {devices.map(device => (
-            <div key={device.device_id} style={cardStyle}>
-              <h2 style={{ marginTop: 0 }}>{device.device_id}</h2>
-              <p><strong>Tipo:</strong> {device.type}</p>
-              <p><strong>Raspberry Pi:</strong> {device.raspi_id}</p>
-              <p><strong>Entradas digitales:</strong> {device.digital_inputs}</p>
-              <p><strong>Salidas digitales:</strong> {device.digital_outputs}</p>
-              <p><strong>Entradas analógicas:</strong> {device.analog_inputs}</p>
-              <p><strong>Salidas analógicas:</strong> {device.analog_outputs}</p>
-              <p><strong>Registrado en:</strong> {new Date(device.registered_at).toLocaleString()}</p>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+        {/* Selector de vista */}
+        {!loading && !error && devices.length > 0 && (
+          <FormControl fullWidth sx={{ mb: 3 }}>
+            <InputLabel id="view-label">Ver como</InputLabel>
+            <Select
+              labelId="view-label"
+              value={view}
+              label="Ver como"
+              onChange={e => setView(e.target.value)}
+            >
+              <MenuItem value="esp32">ESP32</MenuItem>
+              <MenuItem value="raspi">Raspberry Pi</MenuItem>
+            </Select>
+          </FormControl>
+        )}
+
+        {/* Grid de tarjetas */}
+        {!loading && !error && itemsToRender.length > 0 && (
+          <Grid container spacing={3}>
+            {view === 'esp32' &&
+              devices.map(device => (
+                <Grid item xs={12} sm={6} md={4} key={device.device_id}>
+                  <DeviceCard device={device} />
+                </Grid>
+              ))}
+
+            {view === 'raspi' &&
+              raspberries.map(rpi => (
+                <Grid item xs={12} sm={6} md={4} key={rpi.raspi_id}>
+                  <Box
+                    sx={{
+                      border: '1px solid #ddd',
+                      borderRadius: 2,
+                      p: 2,
+                      boxShadow: 1,
+                      height: '100%',
+                    }}
+                  >
+                    <Typography variant="h6">{rpi.raspi_id}</Typography>
+                    <Typography variant="body2">
+                      Dispositivos conectados: {rpi.count}
+                    </Typography>
+                  </Box>
+                </Grid>
+              ))}
+          </Grid>
+        )}
+      </Box>
+    </Box>
   );
 }
-
-export default DevicesPage;
