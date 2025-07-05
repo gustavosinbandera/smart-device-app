@@ -37,3 +37,40 @@
   transform: translateY(-2px);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+
+/* src/components/DeviceCard/DeviceCard.module.css */
+
+.card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: 8px;
+  overflow: hidden;
+
+  /* Añadimos transición para transform, sombra y opacidad */
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  opacity: 0.95; /* ligero desvanecido */
+}
+
+/* resto de tus estilos */
+
+.content {
+  flex: 1;
+  padding: 16px;
+}
+
+.footer {
+  padding: 8px 16px;
+  background-color: #f9f9fb;
+  text-align: right;
+}
+
+.settingsButton {
+  color: #1976d2;
+}

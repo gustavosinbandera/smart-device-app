@@ -112,3 +112,38 @@
   -ms-user-select: none;     /* IE10+ */
   user-select: none;         /* Estándar */
 }
+
+/* Ocultar scrollbar en .scrollRow */
+
+/* Chrome, Safari y Opera */
+.scrollRow::-webkit-scrollbar {
+  display: none;
+}
+
+/* Firefox */
+.scrollRow {
+  scrollbar-width: none;
+  -ms-overflow-style: none; /* IE 10+ y Edge */
+}
+
+
+.scrollRow {
+  display: flex;
+  overflow-x: auto;
+  gap: 16px;
+  padding-bottom: 8px;
+  cursor: grab;
+}
+
+.activeRow {
+  cursor: grabbing;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Efecto de selección: oscurece ligeramente */
+.cardWrapperSelected {
+  filter: brightness(0.9);
+}
