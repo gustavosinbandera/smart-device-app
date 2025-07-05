@@ -1,5 +1,6 @@
 // src/pages/DevicesPage/DevicesPage.js
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
   AppBar,
@@ -10,21 +11,40 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  BottomNavigation,
+  BottomNavigationAction
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import HomeIcon from '@mui/icons-material/Home';
+import DevicesIcon from '@mui/icons-material/Devices';
+import SettingsIcon from '@mui/icons-material/Settings';
 import DeviceCard from '../../components/DeviceCard/DeviceCard';
+import RpiCard from '../../components/RpiCard/RpiCard';
 import { useDevices } from '../../hooks/useDevices';
 import Loader from '../../components/Loader/Loader';
 import Alert from '@mui/material/Alert';
 import styles from './DevicesPage.module.css';
 
 export default function DevicesPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const { devices, loading, error } = useDevices();
-  const [view, setView] = useState('esp32'); // 'esp32' | 'raspi'
+  const [view, setView] = useState('esp32');           // 'esp32' | 'raspi'
+  const [navValue, setNavValue] = useState('devices'); // controla el tab activo
 
-  // Para la vista de Raspberry, extraemos IDs únicos
+  // Mantener navValue en sync con la ruta
+  useEffect(() => {
+    if (location.pathname.startsWith('/devices')) {
+      setNavValue('devices');
+    } else if (location.pathname === '/' || location.pathname === '/home') {
+      setNavValue('home');
+    } else if (location.pathname.startsWith('/settings')) {
+      setNavValue('settings');
+    }
+  }, [location.pathname]);
+
   const raspberries = useMemo(() => {
     if (!devices) return [];
     const uniq = Array.from(new Set(devices.map(d => d.raspi_id)));
@@ -34,11 +54,18 @@ export default function DevicesPage() {
     }));
   }, [devices]);
 
-  // Datos que renderizamos según la vista
   const itemsToRender = view === 'esp32' ? devices : raspberries;
+
+  const handleNavChange = (e, val) => {
+    setNavValue(val);
+    if (val === 'home') navigate('/');
+    if (val === 'devices') navigate('/devices');
+    if (val === 'settings') navigate('/settings');
+  };
 
   return (
     <Box className={styles.root}>
+      {/* AppBar superior */}
       <AppBar position="sticky" color="primary" elevation={1}>
         <Toolbar>
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
@@ -49,7 +76,8 @@ export default function DevicesPage() {
         </Toolbar>
       </AppBar>
 
-      <Box className={styles.container}>
+      {/* Contenido principal */}
+      <Box className={styles.container} sx={{ pb: 10 /* espacio para bottom nav */ }}>
         <Typography variant="h4" className={styles.title}>
           Dispositivos
         </Typography>
@@ -111,25 +139,43 @@ export default function DevicesPage() {
                   key={rpi.raspi_id}
                   className={styles.gridItem}
                 >
-                  <Box
-                    sx={{
-                      border: '1px solid #ddd',
-                      borderRadius: 2,
-                      p: 2,
-                      boxShadow: 1,
-                      height: '100%'
-                    }}
-                  >
-                    <Typography variant="h6">{rpi.raspi_id}</Typography>
-                    <Typography variant="body2">
-                      Dispositivos conectados: {rpi.count}
-                    </Typography>
-                  </Box>
+                  <RpiCard raspi={rpi} />
                 </Grid>
               ))}
           </Grid>
         )}
       </Box>
+
+      {/* Bottom Navigation fija */}
+      <BottomNavigation
+        showLabels
+        value={navValue}
+        onChange={handleNavChange}
+        sx={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          borderTop: '1px solid #ddd',
+          backgroundColor: '#fff'
+        }}
+      >
+        <BottomNavigationAction
+          label="Inicio"
+          value="home"
+          icon={<HomeIcon />}
+        />
+        <BottomNavigationAction
+          label="Dispositivos"
+          value="devices"
+          icon={<DevicesIcon />}
+        />
+        <BottomNavigationAction
+          label="Ajustes"
+          value="settings"
+          icon={<SettingsIcon />}
+        />
+      </BottomNavigation>
     </Box>
   );
 }

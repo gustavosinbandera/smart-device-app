@@ -28,3 +28,21 @@
   display: flex;
   height: 100%;
 }
+
+/* ────────────── Ajustes para móvil ────────────── */
+@media (max-width: 600px) {
+  .container {
+    padding: 16px 8px;
+  }
+  .title {
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+  }
+  .selectControl {
+    margin-bottom: 16px;
+  }
+  .gridItem {
+    /* eliminamos altura forzada para que cards se adapten */
+    height: auto;
+  }
+}

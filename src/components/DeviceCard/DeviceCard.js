@@ -25,6 +25,7 @@ export default function DeviceCard({ device }) {
           <IconButton
             size="small"
             onClick={goToDetails}
+            color="primary"
             className={styles.settingsButton} // ← aquí
           >
             <SettingsIcon />
