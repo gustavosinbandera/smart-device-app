@@ -46,3 +46,69 @@
     height: auto;
   }
 }
+
+
+/* Añade al final de DevicesPage.module.css */
+
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin: 16px 0 8px;
+}
+
+.scrollRow {
+  display: flex;
+  overflow-x: auto;
+  gap: 16px;
+  padding-bottom: 8px;
+}
+
+.cardWrapper {
+  flex: 0 0 auto;
+  width: 240px; /* ancho fijo para cada card */
+}
+
+
+/* Permite arrastrar para scroll */
+.scrollRow {
+  display: flex;
+  overflow-x: auto;
+  gap: 16px;
+  padding-bottom: 8px;
+  cursor: grab;
+}
+
+.activeRow {
+  cursor: grabbing;
+}
+
+.cardWrapper {
+  flex: 0 0 auto;
+  width: 240px;
+}
+
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin: 16px 0 8px;
+}
+
+
+
+.scrollRow {
+  display: flex;
+  overflow-x: auto;
+  gap: 16px;
+  padding-bottom: 8px;
+  cursor: grab;
+}
+
+.activeRow {
+  cursor: grabbing;
+
+  /* Deshabilita la selección de texto SOLO mientras arrastras */
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none;    /* Firefox */
+  -ms-user-select: none;     /* IE10+ */
+  user-select: none;         /* Estándar */
+}
