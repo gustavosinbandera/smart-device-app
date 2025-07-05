@@ -4,6 +4,7 @@ import {
   Card,
   CardHeader,
   CardContent,
+  CardActions,
   Typography,
   IconButton
 } from '@mui/material';
@@ -11,24 +12,24 @@ import WifiIcon from '@mui/icons-material/Wifi';
 import SettingsIcon from '@mui/icons-material/Settings';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import { useNavigate } from 'react-router-dom';
+import styles from './DeviceCard.module.css';
 
 export default function DeviceCard({ device }) {
   const navigate = useNavigate();
-
-  const goToDetails = () => {
-    navigate(`/devices/${device.device_id}`);
-  };
+  const goToDetails = () => navigate(`/devices/${device.device_id}`);
 
   return (
-    <Card elevation={2}>
+    <Card elevation={2} className={styles.card}>
       <CardHeader
-        // Avatar pasa a ser el botón de configuración
         avatar={
-          <IconButton size="small" onClick={goToDetails}>
+          <IconButton
+            size="small"
+            onClick={goToDetails}
+            className={styles.settingsButton} // ← aquí
+          >
             <SettingsIcon />
           </IconButton>
         }
-        // Solo el wifi queda como acción a la derecha
         action={
           <IconButton size="small">
             <WifiIcon />
@@ -37,7 +38,8 @@ export default function DeviceCard({ device }) {
         title={device.device_id}
         subheader={`Raspberry Pi: ${device.raspi_id}`}
       />
-      <CardContent>
+
+      <CardContent className={styles.content}>
         <Typography variant="body2" sx={{ mb: 1 }}>
           <strong>Tipo:</strong> {device.type}
         </Typography>
@@ -49,14 +51,14 @@ export default function DeviceCard({ device }) {
           <strong>An. In:</strong> {device.analog_inputs} ·{' '}
           <strong>An. Out:</strong> {device.analog_outputs}
         </Typography>
-        <Typography
-          variant="caption"
-          sx={{ display: 'flex', alignItems: 'center', mt: 1 }}
-        >
+      </CardContent>
+
+      <CardActions className={styles.footer}>
+        <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center' }}>
           <CalendarTodayIcon fontSize="small" sx={{ mr: 0.5 }} />
           {new Date(device.registered_at).toLocaleDateString()}
         </Typography>
-      </CardContent>
+      </CardActions>
     </Card>
   );
 }

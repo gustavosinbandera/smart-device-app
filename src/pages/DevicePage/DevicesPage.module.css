@@ -1,10 +1,10 @@
-/* DevicesPage.module.css */
+/* src/pages/DevicesPage/DevicesPage.module.css */
 
 .root {
   min-height: 100vh;
-  background-color: #f0f2f5;           /* Fondo suave, neutral */
-  font-family: 'Roboto', sans-serif;   /* Tipografía moderna */
-  color: #333;                         /* Texto ligeramente suave */
+  background-color: #f0f2f5;
+  font-family: 'Roboto', sans-serif;
+  color: #333;
 }
 
 .container {
@@ -25,6 +25,6 @@
 }
 
 .gridItem {
-  display: flex;       /* Permite que el card llene el grid cell */
-  height: 100%;        /* Para alinear cards a la misma altura */
+  display: flex;
+  height: 100%;
 }
