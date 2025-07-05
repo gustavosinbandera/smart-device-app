@@ -1,3 +1,4 @@
+// src/pages/DevicesPage/DevicesPage.js
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -30,13 +31,13 @@ export default function DevicesPage() {
 
   // refs para scroll y drag
   const esp32RowRef = useRef(null);
-  const rpiRowRef = useRef(null);
-  const isDown = useRef(false);
-  const startX = useRef(0);
-  const scrollLeft = useRef(0);
+  const rpiRowRef   = useRef(null);
+  const isDown      = useRef(false);
+  const startX      = useRef(0);
+  const scrollLeft  = useRef(0);
 
   useEffect(() => {
-    if (location.pathname.startsWith('/devices')) setNavValue('devices');
+    if (location.pathname.startsWith('/devices'))       setNavValue('devices');
     else if (location.pathname === '/' || location.pathname === '/home') setNavValue('home');
     else if (location.pathname.startsWith('/settings')) setNavValue('settings');
   }, [location.pathname]);
@@ -52,35 +53,39 @@ export default function DevicesPage() {
 
   const handleNavChange = (_, val) => {
     setNavValue(val);
-    if (val === 'home') navigate('/');
-    if (val === 'devices') navigate('/devices');
-    if (val === 'settings') navigate('/settings');
+    if (val === 'home')      navigate('/');
+    if (val === 'devices')   navigate('/devices');
+    if (val === 'settings')  navigate('/settings');
   };
 
-  // Handlers de drag-to-scroll, con limpieza de selección
-  const startDrag = (e, ref) => {
-    e.preventDefault();
+  // Handlers drag-to-scroll
+  const startDrag = (event, ref) => {
+    event.preventDefault();
     isDown.current = true;
     ref.current.classList.add(styles.activeRow);
-    startX.current = e.pageX - ref.current.offsetLeft;
+    const pageX = event.touches ? event.touches[0].pageX : event.pageX;
+    startX.current = pageX - ref.current.offsetLeft;
     scrollLeft.current = ref.current.scrollLeft;
-    setSelectedId(null); // al iniciar drag limpio selección
+    setSelectedId(null);
   };
-  const endDrag = (ref) => {
+
+  const endDrag = ref => {
     isDown.current = false;
     ref.current.classList.remove(styles.activeRow);
   };
-  const onDrag = (e, ref) => {
+
+  const onDrag = (event, ref) => {
     if (!isDown.current) return;
-    e.preventDefault();
-    const x = e.pageX - ref.current.offsetLeft;
-    const walk = (x - startX.current) * 1.5;
+    event.preventDefault();
+    const pageX = event.touches ? event.touches[0].pageX : event.pageX;
+    const walk = (pageX - ref.current.offsetLeft - startX.current) * 1.5;
     ref.current.scrollLeft = scrollLeft.current - walk;
   };
 
   return (
     <Box className={styles.root}>
-      <AppBar position="sticky" color="primary" elevation={1}>
+      {/* AppBar en dark mode */}
+      <AppBar position="sticky" color="default" elevation={1}>
         <Toolbar>
           <Typography variant="h6" sx={{ flexGrow: 1 }}>Inicio</Typography>
           <IconButton color="inherit"><AddIcon /></IconButton>
@@ -100,19 +105,22 @@ export default function DevicesPage() {
             ref={esp32RowRef}
             className={styles.scrollRow}
             onMouseDown={e => startDrag(e, esp32RowRef)}
-            onMouseUp={() => endDrag(esp32RowRef)}
-            onMouseLeave={() => endDrag(esp32RowRef)}
+            onMouseUp={()   => endDrag(esp32RowRef)}
+            onMouseLeave={()=> endDrag(esp32RowRef)}
             onMouseMove={e => onDrag(e, esp32RowRef)}
-            onTouchStart={e => startDrag(e.touches[0], esp32RowRef)}
-            onTouchEnd={() => endDrag(esp32RowRef)}
-            onTouchMove={e => onDrag(e.touches[0], esp32RowRef)}
+            onTouchStart={e => startDrag(e, esp32RowRef)}
+            onTouchEnd={()   => endDrag(esp32RowRef)}
+            onTouchMove={e => onDrag(e, esp32RowRef)}
           >
             {devices.map(device => (
               <Box
                 key={device.device_id}
-                className={`${styles.cardWrapper} ${selectedId === device.device_id ? styles.cardWrapperSelected : ''}`}
+                className={`
+                  ${styles.cardWrapper}
+                  ${selectedId === device.device_id ? styles.cardWrapperSelected : ''}
+                `}
                 onMouseDown={() => setSelectedId(device.device_id)}
-                onMouseUp={() => setSelectedId(null)}
+                onMouseUp={()   => setSelectedId(null)}
               >
                 <DeviceCard device={device} />
               </Box>
@@ -120,7 +128,9 @@ export default function DevicesPage() {
           </Box>
         )}
 
-        <Typography variant="h5" className={styles.sectionTitle} sx={{ mt: 4 }}>Mis Raspberry Pi</Typography>
+        <Typography variant="h5" className={styles.sectionTitle} sx={{ mt: 4 }}>
+          Mis Raspberry Pi
+        </Typography>
         {!loading && !error && raspberries.length === 0 && (
           <Alert severity="info">No hay Raspberry Pi registradas.</Alert>
         )}
@@ -129,19 +139,22 @@ export default function DevicesPage() {
             ref={rpiRowRef}
             className={styles.scrollRow}
             onMouseDown={e => startDrag(e, rpiRowRef)}
-            onMouseUp={() => endDrag(rpiRowRef)}
-            onMouseLeave={() => endDrag(rpiRowRef)}
+            onMouseUp={()   => endDrag(rpiRowRef)}
+            onMouseLeave={()=> endDrag(rpiRowRef)}
             onMouseMove={e => onDrag(e, rpiRowRef)}
-            onTouchStart={e => startDrag(e.touches[0], rpiRowRef)}
-            onTouchEnd={() => endDrag(rpiRowRef)}
-            onTouchMove={e => onDrag(e.touches[0], rpiRowRef)}
+            onTouchStart={e => startDrag(e, rpiRowRef)}
+            onTouchEnd={()   => endDrag(rpiRowRef)}
+            onTouchMove={e => onDrag(e, rpiRowRef)}
           >
             {raspberries.map(rpi => (
               <Box
                 key={rpi.raspi_id}
-                className={`${styles.cardWrapper} ${selectedId === rpi.raspi_id ? styles.cardWrapperSelected : ''}`}
+                className={`
+                  ${styles.cardWrapper}
+                  ${selectedId === rpi.raspi_id ? styles.cardWrapperSelected : ''}
+                `}
                 onMouseDown={() => setSelectedId(rpi.raspi_id)}
-                onMouseUp={() => setSelectedId(null)}
+                onMouseUp={()   => setSelectedId(null)}
               >
                 <RpiCard raspi={rpi} />
               </Box>
@@ -150,22 +163,23 @@ export default function DevicesPage() {
         )}
       </Box>
 
+      {/* BottomNavigation en dark mode */}
       <BottomNavigation
         showLabels
         value={navValue}
         onChange={handleNavChange}
         sx={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          borderTop: '1px solid #ddd',
-          backgroundColor: '#fff'
+          position:        'fixed',
+          bottom:          0,
+          left:            0,
+          right:           0,
+          borderTop:       '1px solid rgba(255,255,255,0.12)',
+          backgroundColor: 'background.paper'
         }}
       >
-        <BottomNavigationAction label="Inicio" value="home" icon={<HomeIcon />} />
+        <BottomNavigationAction label="Inicio"      value="home"    icon={<HomeIcon />} />
         <BottomNavigationAction label="Dispositivos" value="devices" icon={<DevicesIcon />} />
-        <BottomNavigationAction label="Ajustes" value="settings" icon={<SettingsIcon />} />
+        <BottomNavigationAction label="Ajustes"      value="settings" icon={<SettingsIcon />} />
       </BottomNavigation>
     </Box>
   );

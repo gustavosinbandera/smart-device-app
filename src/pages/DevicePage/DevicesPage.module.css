@@ -1,8 +1,9 @@
 /* src/pages/DevicesPage/DevicesPage.module.css */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&display=swap');
 
 .root {
   min-height: 100vh;
-  background-color: #f0f2f5;
+  /*background-color: #f0f2f5;*/
   font-family: 'Roboto', sans-serif;
   color: #333;
 }
@@ -146,4 +147,22 @@
 /* Efecto de selección: oscurece ligeramente */
 .cardWrapperSelected {
   filter: brightness(0.9);
+}
+
+
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin: 16px 0 8px;
+  color: #fff;    /* <-- Añadido */
+}
+
+
+
+.sectionTitle {
+  font-family: 'Montserrat', sans-serif;  /* Nuevo tipo de letra */
+  font-size: 1.5rem;                       /* Un pelín más grande */
+  font-weight: 600;                        /* Peso seminegreto */
+  margin: 16px 0 8px;
+  color: #fff;
 }

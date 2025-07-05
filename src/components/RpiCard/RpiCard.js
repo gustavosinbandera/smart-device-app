@@ -11,7 +11,8 @@ import {
   IconButton,
   Badge,
   Menu,
-  MenuItem
+  MenuItem,
+  useTheme
 } from '@mui/material';
 import StorageIcon from '@mui/icons-material/Storage';
 import WifiIcon from '@mui/icons-material/Wifi';
@@ -20,9 +21,8 @@ import styles from './RpiCard.module.css';
 
 export default function RpiCard({ raspi }) {
   const navigate = useNavigate();
+  const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
-
-  // refs para drag
   const drag = useRef(false);
 
   const openMenu = e => {
@@ -35,9 +35,17 @@ export default function RpiCard({ raspi }) {
     navigate(`/raspis/${raspi.raspi_id}`);
   };
 
+  // Señal 0–5  
   const level = raspi.signalLevel ?? 4;
-  const wifiColors = ['#ccc','#999','#666','#333','#111','#000'];
-  const wifiColor = wifiColors[Math.min(level,5)];
+  const wifiColors = [
+    theme.palette.grey[600],
+    theme.palette.grey[500],
+    theme.palette.grey[400],
+    theme.palette.grey[300],
+    theme.palette.grey[200],
+    theme.palette.common.white
+  ];
+  const wifiColor = wifiColors[Math.min(level, 5)];
 
   return (
     <Card elevation={2} className={styles.card}>
@@ -56,9 +64,9 @@ export default function RpiCard({ raspi }) {
           avatar={
             <Badge
               overlap="circular"
-              anchorOrigin={{ vertical:'bottom', horizontal:'right' }}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
               variant="dot"
-              color={raspi.online ? 'success':'default'}
+              color={raspi.online ? 'success' : 'default'}
             >
               <Avatar className={styles.avatar}>
                 <StorageIcon />
@@ -74,8 +82,8 @@ export default function RpiCard({ raspi }) {
                 anchorEl={anchorEl}
                 open={Boolean(anchorEl)}
                 onClose={closeMenu}
-                anchorOrigin={{ vertical:'top', horizontal:'right' }}
-                transformOrigin={{ vertical:'top', horizontal:'right' }}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
               >
                 <MenuItem onClick={() => { closeMenu(); goToDetails(); }}>
                   Ver detalles
@@ -87,15 +95,20 @@ export default function RpiCard({ raspi }) {
           title={raspi.raspi_id}
           subheader={`Conectados: ${raspi.count}`}
           titleTypographyProps={{
-            variant:'h6', noWrap:true,
-            sx:{ color:'primary.main', fontWeight:600, letterSpacing:'0.5px' }
+            variant: 'h6',
+            noWrap: true,
+            sx: {
+              color: 'primary.main',
+              fontWeight: 600,
+              letterSpacing: '0.5px'
+            }
           }}
-          sx={{ '& .MuiCardHeader-subheader':{ color:'text.secondary' } }}
+          sx={{ '& .MuiCardHeader-subheader': { color: 'text.secondary' } }}
         />
 
         <CardContent className={styles.content}>
           <Typography variant="caption" display="flex" alignItems="center" gutterBottom>
-            <WifiIcon fontSize="small" sx={{ color:wifiColor, mr:0.5 }} />
+            <WifiIcon fontSize="small" sx={{ color: wifiColor, mr: 0.5 }} />
             Señal: {level}/5
           </Typography>
           <Typography variant="body2">
