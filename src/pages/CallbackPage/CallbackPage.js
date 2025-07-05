@@ -1,6 +1,7 @@
 // src/pages/CallbackPage.js
 import React, { useEffect, useState, useRef } from 'react';
 import { Box, Typography, LinearProgress, Button, useTheme } from '@mui/material';
+import HomeWorkIcon from '@mui/icons-material/HomeWork';
 import { useNavigate } from 'react-router-dom';
 
 export default function CallbackPage() {
@@ -88,7 +89,7 @@ export default function CallbackPage() {
     requestAnimationFrame(tick);
   }, [navigate]);
 
-  // 3️⃣ Render
+  // 3️⃣ Renderizado
   if (error) {
     return (
       <Box
@@ -123,6 +124,7 @@ export default function CallbackPage() {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
+        alignItems: 'center',
         bgcolor: 'background.default',
         px: 2,
         textAlign: 'center',
@@ -131,13 +133,22 @@ export default function CallbackPage() {
       }}
     >
       {showWelcome && (
+        <HomeWorkIcon
+          sx={{
+            fontSize: 64,
+            color: theme.palette.common.white,
+            mb: 2
+          }}
+        />
+      )}
+      {showWelcome && (
         <Typography variant="h4" gutterBottom color="text.primary">
           ¡Bienvenido de nuevo!
         </Typography>
       )}
 
       {progress < 100 && (
-        <Box sx={{ width: '60%', maxWidth: 400, mx: 'auto', mt: 2 }}>
+        <Box sx={{ width: '60%', maxWidth: 400, mt: 2 }}>
           <LinearProgress
             variant="determinate"
             value={progress}
