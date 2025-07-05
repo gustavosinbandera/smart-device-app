@@ -8,10 +8,13 @@ import {
   Typography,
   IconButton,
   BottomNavigation,
-  BottomNavigationAction
+  BottomNavigationAction,
+  Menu,
+  MenuItem
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import HomeIcon from '@mui/icons-material/Home';
 import DevicesIcon from '@mui/icons-material/Devices';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -26,22 +29,27 @@ export default function DevicesPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { devices, loading, error } = useDevices();
+
+  // Navegación inferior
   const [navValue, setNavValue] = useState('devices');
-  const [selectedId, setSelectedId] = useState(null);
-
-  // refs para scroll y drag
-  const esp32RowRef = useRef(null);
-  const rpiRowRef   = useRef(null);
-  const isDown      = useRef(false);
-  const startX      = useRef(0);
-  const scrollLeft  = useRef(0);
-
   useEffect(() => {
-    if (location.pathname.startsWith('/devices'))       setNavValue('devices');
+    if (location.pathname.startsWith('/devices'))      setNavValue('devices');
     else if (location.pathname === '/' || location.pathname === '/home') setNavValue('home');
     else if (location.pathname.startsWith('/settings')) setNavValue('settings');
   }, [location.pathname]);
+  const handleNavChange = (_, val) => {
+    setNavValue(val);
+    if (val === 'home')     navigate('/');
+    if (val === 'devices')  navigate('/devices');
+    if (val === 'settings') navigate('/settings');
+  };
 
+  // Menú global de tres puntos
+  const [pageMenuAnchor, setPageMenuAnchor] = useState(null);
+  const openPageMenu = e => setPageMenuAnchor(e.currentTarget);
+  const closePageMenu = () => setPageMenuAnchor(null);
+
+  // Extraer lista de RPi
   const raspberries = useMemo(() => {
     if (!devices) return [];
     const uniq = [...new Set(devices.map(d => d.raspi_id))];
@@ -51,14 +59,13 @@ export default function DevicesPage() {
     }));
   }, [devices]);
 
-  const handleNavChange = (_, val) => {
-    setNavValue(val);
-    if (val === 'home')      navigate('/');
-    if (val === 'devices')   navigate('/devices');
-    if (val === 'settings')  navigate('/settings');
-  };
+  // refs para drag-to-scroll
+  const esp32RowRef = useRef(null);
+  const rpiRowRef   = useRef(null);
+  const isDown      = useRef(false);
+  const startX      = useRef(0);
+  const scrollLeft  = useRef(0);
 
-  // Handlers drag-to-scroll
   const startDrag = (event, ref) => {
     event.preventDefault();
     isDown.current = true;
@@ -66,7 +73,6 @@ export default function DevicesPage() {
     const pageX = event.touches ? event.touches[0].pageX : event.pageX;
     startX.current = pageX - ref.current.offsetLeft;
     scrollLeft.current = ref.current.scrollLeft;
-    setSelectedId(null);
   };
 
   const endDrag = ref => {
@@ -84,19 +90,40 @@ export default function DevicesPage() {
 
   return (
     <Box className={styles.root}>
-      {/* AppBar en dark mode */}
+      {/* AppBar con menú de tres puntos */}
       <AppBar position="sticky" color="default" elevation={1}>
         <Toolbar>
           <Typography variant="h6" sx={{ flexGrow: 1 }}>Inicio</Typography>
+
+          {/* Botón de menú global */}
+          <IconButton color="inherit" onClick={openPageMenu}>
+            <MoreVertIcon />
+          </IconButton>
+          <Menu
+            anchorEl={pageMenuAnchor}
+            open={Boolean(pageMenuAnchor)}
+            onClose={closePageMenu}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+          >
+            <MenuItem onClick={() => { closePageMenu(); /* futura config */ }}>
+              Configuración
+            </MenuItem>
+            <MenuItem onClick={() => { closePageMenu(); /* futura ayuda */ }}>
+              Ayuda
+            </MenuItem>
+          </Menu>
+
           <IconButton color="inherit"><AddIcon /></IconButton>
           <IconButton color="inherit"><NotificationsIcon /></IconButton>
         </Toolbar>
       </AppBar>
 
+      {/* Contenido principal */}
       <Box className={styles.container} sx={{ pb: 10 }}>
         <Typography variant="h5" className={styles.sectionTitle}>Mis ESP32</Typography>
         {loading && <Loader />}
-        {error && <Alert severity="error">❌ {error}</Alert>}
+        {error   && <Alert severity="error">❌ {error}</Alert>}
         {!loading && !error && devices.length === 0 && (
           <Alert severity="info">No hay ESP32 registrados.</Alert>
         )}
@@ -115,12 +142,7 @@ export default function DevicesPage() {
             {devices.map(device => (
               <Box
                 key={device.device_id}
-                className={`
-                  ${styles.cardWrapper}
-                  ${selectedId === device.device_id ? styles.cardWrapperSelected : ''}
-                `}
-                onMouseDown={() => setSelectedId(device.device_id)}
-                onMouseUp={()   => setSelectedId(null)}
+                className={styles.cardWrapper}
               >
                 <DeviceCard device={device} />
               </Box>
@@ -149,12 +171,7 @@ export default function DevicesPage() {
             {raspberries.map(rpi => (
               <Box
                 key={rpi.raspi_id}
-                className={`
-                  ${styles.cardWrapper}
-                  ${selectedId === rpi.raspi_id ? styles.cardWrapperSelected : ''}
-                `}
-                onMouseDown={() => setSelectedId(rpi.raspi_id)}
-                onMouseUp={()   => setSelectedId(null)}
+                className={styles.cardWrapper}
               >
                 <RpiCard raspi={rpi} />
               </Box>
@@ -163,7 +180,7 @@ export default function DevicesPage() {
         )}
       </Box>
 
-      {/* BottomNavigation en dark mode */}
+      {/* BottomNavigation oscuro */}
       <BottomNavigation
         showLabels
         value={navValue}
