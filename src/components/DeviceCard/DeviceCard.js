@@ -5,34 +5,42 @@ import {
   CardHeader,
   CardContent,
   Typography,
-  Avatar,
   IconButton
 } from '@mui/material';
-import MemoryIcon from '@mui/icons-material/Memory';
 import WifiIcon from '@mui/icons-material/Wifi';
+import SettingsIcon from '@mui/icons-material/Settings';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import { useNavigate } from 'react-router-dom';
 
 export default function DeviceCard({ device }) {
+  const navigate = useNavigate();
+
+  const goToDetails = () => {
+    navigate(`/devices/${device.device_id}`);
+  };
+
   return (
     <Card elevation={2}>
       <CardHeader
-        avatar={<Avatar><MemoryIcon /></Avatar>}
+        // Avatar pasa a ser el botón de configuración
+        avatar={
+          <IconButton size="small" onClick={goToDetails}>
+            <SettingsIcon />
+          </IconButton>
+        }
+        // Solo el wifi queda como acción a la derecha
         action={
           <IconButton size="small">
             <WifiIcon />
           </IconButton>
         }
-        // Ahora muestra primero el ESP32 y luego la Raspberry Pi
         title={device.device_id}
         subheader={`Raspberry Pi: ${device.raspi_id}`}
       />
       <CardContent>
-        {/* Tipo de dispositivo */}
         <Typography variant="body2" sx={{ mb: 1 }}>
           <strong>Tipo:</strong> {device.type}
         </Typography>
-
-        {/* Entradas / Salidas */}
         <Typography variant="body2">
           <strong>Dig. In:</strong> {device.digital_inputs} ·{' '}
           <strong>Dig. Out:</strong> {device.digital_outputs}
@@ -41,8 +49,6 @@ export default function DeviceCard({ device }) {
           <strong>An. In:</strong> {device.analog_inputs} ·{' '}
           <strong>An. Out:</strong> {device.analog_outputs}
         </Typography>
-
-        {/* Fecha de registro */}
         <Typography
           variant="caption"
           sx={{ display: 'flex', alignItems: 'center', mt: 1 }}
