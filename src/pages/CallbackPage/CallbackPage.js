@@ -30,7 +30,7 @@ export default function CallbackPage() {
       }
       try {
         const clientId    = '4u8sh6fefm0meln5k4gbsvg9iu';
-        const redirectUri = 'http://localhost:3000/callback';
+        const redirectUri = 'https://app.domoticore.co/callback';
         const tokenUrl    =
           'https://smart-device-demo-domain.auth.us-east-1.amazoncognito.com/oauth2/token';
 
