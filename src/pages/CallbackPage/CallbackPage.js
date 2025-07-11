@@ -5,7 +5,7 @@ import HomeWorkIcon from '@mui/icons-material/HomeWork';
 import { useNavigate } from 'react-router-dom';
 
 export default function CallbackPage() {
-  const totalDuration = 3000; // Duración total de la barra (ms)
+  const totalDuration = 3000;
   const [progress, setProgress]       = useState(0);
   const [showWelcome, setShowWelcome] = useState(true);
   const [error, setError]             = useState(null);
@@ -29,10 +29,14 @@ export default function CallbackPage() {
         return;
       }
       try {
-        const clientId    = '4u8sh6fefm0meln5k4gbsvg9iu';
-        const redirectUri = 'https://app.domoticore.co/callback';
+        const clientId    = '2co3iuoo5nm8fs8t6vjblau23s';
+        const redirectUri = window.location.hostname === 'localhost'
+          ? 'http://localhost:3000/callback'
+          : 'https://app.domoticore.co/callback';
         const tokenUrl    =
           'https://smart-device-demo-domain.auth.us-east-1.amazoncognito.com/oauth2/token';
+
+        //console.log('📤 Token request → redirect_uri:', redirectUri);
 
         const body = new URLSearchParams({
           grant_type:   'authorization_code',
@@ -41,6 +45,8 @@ export default function CallbackPage() {
           redirect_uri: redirectUri
         });
 
+        //console.log('📤 POST to:', tokenUrl, 'body:', body.toString());
+
         const res = await fetch(tokenUrl, {
           method:  'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -48,12 +54,16 @@ export default function CallbackPage() {
         });
 
         const data = await res.json();
-        if (data.error) throw new Error();
+        //console.error('TOKEN RESPONSE status:', res.status);
+        //console.error('TOKEN RESPONSE body:', JSON.stringify(data, null, 2));
+
+        if (data.error) throw new Error(data.error_description || 'Error en token');
 
         localStorage.setItem('id_token', data.id_token);
         localStorage.setItem('access_token', data.access_token);
         fetchDone.current = true;
-      } catch {
+      } catch (err) {
+        console.error('❌ Error en login callback:', err);
         fetchError.current = true;
       }
     })();
@@ -63,7 +73,7 @@ export default function CallbackPage() {
     };
   }, [navigate]);
 
-  // 2️⃣ Animación de la barra y control de fundido / navegación
+  // 2️⃣ Animación de la barra
   useEffect(() => {
     const tick = () => {
       const elapsed = Date.now() - startTime.current;
@@ -74,22 +84,18 @@ export default function CallbackPage() {
         requestAnimationFrame(tick);
       } else {
         setShowWelcome(false);
-
         if (fetchDone.current) {
           setFadeOut(true);
-          setTimeout(() => {
-            navigate('/devices', { replace: true });
-          }, 500);
+          setTimeout(() => navigate('/devices', { replace: true }), 500);
         } else if (fetchError.current) {
           setError('❌ No fue posible iniciar sesión.');
         }
       }
     };
-
     requestAnimationFrame(tick);
   }, [navigate]);
 
-  // 3️⃣ Renderizado
+  // 3️⃣ UI de error
   if (error) {
     return (
       <Box
@@ -117,6 +123,7 @@ export default function CallbackPage() {
     );
   }
 
+  // 4️⃣ UI de carga
   return (
     <Box
       sx={{
@@ -133,18 +140,18 @@ export default function CallbackPage() {
       }}
     >
       {showWelcome && (
-        <HomeWorkIcon
-          sx={{
-            fontSize: 64,
-            color: theme.palette.common.white,
-            mb: 2
-          }}
-        />
-      )}
-      {showWelcome && (
-        <Typography variant="h4" gutterBottom color="text.primary">
-          ¡Bienvenido de nuevo!
-        </Typography>
+        <>
+          <HomeWorkIcon
+            sx={{
+              fontSize: 64,
+              color: theme.palette.common.white,
+              mb: 2
+            }}
+          />
+          <Typography variant="h4" gutterBottom color="text.primary">
+            ¡Bienvenido de nuevo!
+          </Typography>
+        </>
       )}
 
       {progress < 100 && (

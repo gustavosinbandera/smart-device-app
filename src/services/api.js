@@ -1,6 +1,6 @@
 export async function fetchDevices(idToken) {
   const res = await fetch(
-    'https://4koo6afax7.execute-api.us-east-1.amazonaws.com/Prod/devices',
+    'https://e59h4jmoee.execute-api.us-east-1.amazonaws.com/Prod/devices',
     {
       headers: { Authorization: `Bearer ${idToken}` },
     }

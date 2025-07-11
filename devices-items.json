@@ -1,0 +1,239 @@
+{
+    "Devices": [
+        {
+        "PutRequest": {
+            "Item": {
+            "device_id":     { "S": "esp32-001" },
+            "sk":            { "S": "#METADATA#" },
+            "type":          { "S": "Controladora DEMO 1" },
+            "user_id":       { "S": "user-001" },
+            "raspi_id":      { "S": "rpi-001" },
+            "registered_at": { "S": "2025-07-03T12:00:00Z" },
+            "analog_inputs":  { "N": "1" },
+            "analog_outputs": { "N": "1" },
+            "digital_inputs": { "N": "4" },
+            "digital_outputs":{ "N": "6" }
+            }
+        }
+        },
+        {
+        "PutRequest": {
+            "Item": {
+            "device_id": { "S": "esp32-001" },
+            "sk":        { "S": "GPIO#1" },
+            "gpio":      { "S": "gpio-1" },
+            "aliases": {
+                "L": [
+                { "S": "led-001-a" },
+                { "S": "light-001-a" }
+                ]
+            }
+            }
+        }
+        },
+        {
+        "PutRequest": {
+            "Item": {
+            "device_id": { "S": "esp32-001" },
+            "sk":        { "S": "GPIO#2" },
+            "gpio":      { "S": "gpio-2" },
+            "aliases": {
+                "L": [
+                { "S": "led-001-b" },
+                { "S": "light-001-b" }
+                ]
+            }
+            }
+        }
+        },
+
+        {
+        "PutRequest": {
+            "Item": {
+            "device_id":     { "S": "esp32-002" },
+            "sk":            { "S": "#METADATA#" },
+            "type":          { "S": "Controladora DEMO 2" },
+            "user_id":       { "S": "user-002" },
+            "raspi_id":      { "S": "rpi-001" },
+            "registered_at": { "S": "2025-07-03T12:05:00Z" },
+            "analog_inputs":  { "N": "2" },
+            "analog_outputs": { "N": "0" },
+            "digital_inputs": { "N": "3" },
+            "digital_outputs":{ "N": "5" }
+            }
+        }
+        },
+        {
+        "PutRequest": {
+            "Item": {
+            "device_id": { "S": "esp32-002" },
+            "sk":        { "S": "GPIO#1" },
+            "gpio":      { "S": "gpio-1" },
+            "aliases": {
+                "L": [
+                { "S": "sensor-002-a" },
+                { "S": "probe-002-a" }
+                ]
+            }
+            }
+        }
+        },
+        {
+        "PutRequest": {
+            "Item": {
+            "device_id": { "S": "esp32-002" },
+            "sk":        { "S": "GPIO#2" },
+            "gpio":      { "S": "gpio-2" },
+            "aliases": {
+                "L": [
+                { "S": "sensor-002-b" },
+                { "S": "probe-002-b" }
+                ]
+            }
+            }
+        }
+        },
+
+        {
+        "PutRequest": {
+            "Item": {
+            "device_id":     { "S": "esp32-003" },
+            "sk":            { "S": "#METADATA#" },
+            "type":          { "S": "Controladora TEST A" },
+            "user_id":       { "S": "user-003" },
+            "raspi_id":      { "S": "rpi-002" },
+            "registered_at": { "S": "2025-07-03T12:10:00Z" },
+            "analog_inputs":  { "N": "0" },
+            "analog_outputs": { "N": "2" },
+            "digital_inputs": { "N": "5" },
+            "digital_outputs":{ "N": "7" }
+            }
+        }
+        },
+        {
+        "PutRequest": {
+            "Item": {
+            "device_id": { "S": "esp32-003" },
+            "sk":        { "S": "GPIO#1" },
+            "gpio":      { "S": "gpio-1" },
+            "aliases": {
+                "L": [
+                { "S": "bombillo-003-a" },
+                { "S": "foco-003-a" }
+                ]
+            }
+            }
+        }
+        },
+        {
+        "PutRequest": {
+            "Item": {
+            "device_id": { "S": "esp32-003" },
+            "sk":        { "S": "GPIO#2" },
+            "gpio":      { "S": "gpio-2" },
+            "aliases": {
+                "L": [
+                { "S": "bombillo-003-b" },
+                { "S": "foco-003-b" }
+                ]
+            }
+            }
+        }
+        },
+
+        {
+        "PutRequest": {
+            "Item": {
+            "device_id":     { "S": "esp32-004" },
+            "sk":            { "S": "#METADATA#" },
+            "type":          { "S": "Controladora TEST B" },
+            "user_id":       { "S": "user-004" },
+            "raspi_id":      { "S": "rpi-002" },
+            "registered_at": { "S": "2025-07-03T12:15:00Z" },
+            "analog_inputs":  { "N": "1" },
+            "analog_outputs": { "N": "1" },
+            "digital_inputs": { "N": "4" },
+            "digital_outputs":{ "N": "6" }
+            }
+        }
+        },
+        {
+        "PutRequest": {
+            "Item": {
+            "device_id": { "S": "esp32-004" },
+            "sk":        { "S": "GPIO#1" },
+            "gpio":      { "S": "gpio-1" },
+            "aliases": {
+                "L": [
+                { "S": "led-004-a" },
+                { "S": "light-004-a" }
+                ]
+            }
+            }
+        }
+        },
+        {
+        "PutRequest": {
+            "Item": {
+            "device_id": { "S": "esp32-004" },
+            "sk":        { "S": "GPIO#2" },
+            "gpio":      { "S": "gpio-2" },
+            "aliases": {
+                "L": [
+                { "S": "led-004-b" },
+                { "S": "light-004-b" }
+                ]
+            }
+            }
+        }
+        },
+
+        {
+        "PutRequest": {
+            "Item": {
+            "device_id":     { "S": "esp32-005" },
+            "sk":            { "S": "#METADATA#" },
+            "type":          { "S": "Controladora DEMO 5" },
+            "user_id":       { "S": "user-005" },
+            "raspi_id":      { "S": "rpi-001" },
+            "registered_at": { "S": "2025-07-03T12:20:00Z" },
+            "analog_inputs":  { "N": "0" },
+            "analog_outputs": { "N": "0" },
+            "digital_inputs": { "N": "3" },
+            "digital_outputs":{ "N": "5" }
+            }
+        }
+        },
+        {
+        "PutRequest": {
+            "Item": {
+            "device_id": { "S": "esp32-005" },
+            "sk":        { "S": "GPIO#1" },
+            "gpio":      { "S": "gpio-1" },
+            "aliases": {
+                "L": [
+                { "S": "fan-005-a" },
+                { "S": "vent-005-a" }
+                ]
+            }
+            }
+        }
+        },
+        {
+        "PutRequest": {
+            "Item": {
+            "device_id": { "S": "esp32-005" },
+            "sk":        { "S": "GPIO#2" },
+            "gpio":      { "S": "gpio-2" },
+            "aliases": {
+                "L": [
+                { "S": "fan-005-b" },
+                { "S": "vent-005-b" }
+                ]
+            }
+            }
+        }
+        }
+    ]
+
+}
