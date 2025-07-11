@@ -25,10 +25,13 @@ import Loader from '../../components/Loader/Loader';
 import Alert from '@mui/material/Alert';
 import styles from './DevicesPage.module.css';
 
+import { useRaspberryPis } from '../../hooks/useRaspberryPis';
+
 export default function DevicesPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { devices, loading, error } = useDevices();
+  const { raspberries, loading: loadingRpi, error: errorRpi } = useRaspberryPis();
 
   // Navegación inferior
   const [navValue, setNavValue] = useState('devices');
@@ -48,16 +51,6 @@ export default function DevicesPage() {
   const [pageMenuAnchor, setPageMenuAnchor] = useState(null);
   const openPageMenu = e => setPageMenuAnchor(e.currentTarget);
   const closePageMenu = () => setPageMenuAnchor(null);
-
-  // Extraer lista de RPi
-  const raspberries = useMemo(() => {
-    if (!devices) return [];
-    const uniq = [...new Set(devices.map(d => d.raspi_id))];
-    return uniq.map(id => ({
-      raspi_id: id,
-      count: devices.filter(d => d.raspi_id === id).length
-    }));
-  }, [devices]);
 
   // refs para drag-to-scroll
   const esp32RowRef = useRef(null);
@@ -151,33 +144,36 @@ export default function DevicesPage() {
         )}
 
         <Typography variant="h5" className={styles.sectionTitle} sx={{ mt: 4 }}>
-          Mis Raspberry Pi
-        </Typography>
-        {!loading && !error && raspberries.length === 0 && (
-          <Alert severity="info">No hay Raspberry Pi registradas.</Alert>
-        )}
-        {!loading && !error && raspberries.length > 0 && (
-          <Box
-            ref={rpiRowRef}
-            className={styles.scrollRow}
-            onMouseDown={e => startDrag(e, rpiRowRef)}
-            onMouseUp={()   => endDrag(rpiRowRef)}
-            onMouseLeave={()=> endDrag(rpiRowRef)}
-            onMouseMove={e => onDrag(e, rpiRowRef)}
-            onTouchStart={e => startDrag(e, rpiRowRef)}
-            onTouchEnd={()   => endDrag(rpiRowRef)}
-            onTouchMove={e => onDrag(e, rpiRowRef)}
-          >
-            {raspberries.map(rpi => (
-              <Box
-                key={rpi.raspi_id}
-                className={styles.cardWrapper}
-              >
-                <RpiCard raspi={rpi} />
-              </Box>
-            ))}
-          </Box>
-        )}
+            Mis Raspberry Pi
+          </Typography>
+          {!loadingRpi && !errorRpi && raspberries.length === 0 && (
+            <Alert severity="info">No hay Raspberry Pi registradas.</Alert>
+          )}
+          {errorRpi && <Alert severity="error">❌ {errorRpi}</Alert>}
+          {loadingRpi && <Loader />}
+          {!loadingRpi && !errorRpi && raspberries.length > 0 && (
+            <Box
+              ref={rpiRowRef}
+              className={styles.scrollRow}
+              onMouseDown={e => startDrag(e, rpiRowRef)}
+              onMouseUp={()   => endDrag(rpiRowRef)}
+              onMouseLeave={()=> endDrag(rpiRowRef)}
+              onMouseMove={e => onDrag(e, rpiRowRef)}
+              onTouchStart={e => startDrag(e, rpiRowRef)}
+              onTouchEnd={()   => endDrag(rpiRowRef)}
+              onTouchMove={e => onDrag(e, rpiRowRef)}
+            >
+              {raspberries.map(rpi => (
+                <Box
+                  key={rpi.raspi_id}
+                  className={styles.cardWrapper}
+                >
+                  <RpiCard raspi={rpi} />
+                </Box>
+              ))}
+            </Box>
+          )}
+
       </Box>
 
       {/* BottomNavigation oscuro */}
