@@ -10,11 +10,11 @@ import {
   Alert,
   CircularProgress
 } from '@mui/material';
-import {useDevices} from '../../hooks/useDevices';
+import { useDeviceDetails } from '../../hooks/useDeviceDetails'; // ⬅ nuevo hook
 
 export default function DeviceDetailsPage() {
   const { deviceId } = useParams();
-  const { devices, loading, error } = useDevices();
+  const { device, loading, error } = useDeviceDetails(deviceId); // ⬅ usa el hook correcto
 
   if (loading) {
     return (
@@ -36,7 +36,6 @@ export default function DeviceDetailsPage() {
     );
   }
 
-  const device = devices.find(d => d.device_id === deviceId);
   if (!device) {
     return (
       <Box sx={{ p: 4 }}>
@@ -54,7 +53,7 @@ export default function DeviceDetailsPage() {
         Configurar aliases — {device.device_id}
       </Typography>
       <Typography variant="subtitle2" gutterBottom>
-        Conectado a Raspberry Pi: {device.raspi_id}
+        Tipo de dispositivo: {device.type} — Registrado el: {new Date(device.registered_at).toLocaleString()}
       </Typography>
 
       {device.aliases.length === 0 && (
@@ -65,8 +64,7 @@ export default function DeviceDetailsPage() {
 
       <Grid container spacing={2}>
         {device.aliases.map(aliasRow => {
-          // Cada aliasRow tiene { gpio: 'gpio-1', aliases: ['bombillo','bombilla','foco'] }
-          const label = aliasRow.gpio.replace(/_/g, ' ');
+          const label = `${aliasRow.gpio.toUpperCase()} — ${aliasRow.direction?.toUpperCase() || 'UNKNOWN'} ${aliasRow.type?.toUpperCase() || ''}`;
           const value = Array.isArray(aliasRow.aliases)
             ? aliasRow.aliases.join(', ')
             : '';

@@ -1,17 +1,14 @@
-// src/hooks/useDevices.js
 import { useEffect, useState } from 'react';
 import { fetchDevices } from '../services/api';
 
 /**
  * Genera un historial de señal de longitud `length` a partir de un nivel inicial.
- * Los valores varían suavemente entre 0 y 5.
  */
 function generateSignalHistory(initialLevel, length = 100) {
   const history = [];
   let current = initialLevel;
   for (let i = 0; i < length; i++) {
-    // delta en {-1, 0, +1}
-    const delta = Math.floor(Math.random() * 3) - 1;
+    const delta = Math.floor(Math.random() * 3) - 1; // {-1, 0, +1}
     current = Math.max(0, Math.min(5, current + delta));
     history.push(current);
   }
@@ -24,7 +21,7 @@ export function useDevices() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('id_token'); // mantenemos id_token
+    const token = localStorage.getItem('id_token');
     if (!token) {
       setError('No se encontró id_token en localStorage.');
       setLoading(false);
@@ -33,21 +30,27 @@ export function useDevices() {
 
     fetchDevices(token)
       .then(data => {
-        // Aseguramos array y enriquecemos con signalHistory
-        const arr = Array.isArray(data) ? data : [];
-        const enriched = arr.map(device => {
-          // si ya trae signalHistory, lo respetamos
-          if (Array.isArray(device.signalHistory) && device.signalHistory.length) {
-            return device;
-          }
-          // obtenemos nivel actual o usamos 3 por defecto
-          const level =
-            typeof device.signalLevel === 'number' ? device.signalLevel : 3;
+        const raw = Array.isArray(data) ? data : [];
+
+        const enriched = raw.map(device => {
+          const level = typeof device.signalLevel === 'number' ? device.signalLevel : 3;
+
+          // Puedes agregar aquí estadísticas si quieres, como número de GPIOs por tipo
+          const digital_inputs = device.aliases?.filter(a => a.direction === 'input' && a.type === 'digital').length || 0;
+          const digital_outputs = device.aliases?.filter(a => a.direction === 'output' && a.type === 'digital').length || 0;
+          const analog_inputs = device.aliases?.filter(a => a.direction === 'input' && a.type === 'analog').length || 0;
+          const analog_outputs = device.aliases?.filter(a => a.direction === 'output' && a.type === 'analog').length || 0;
+
           return {
             ...device,
-            signalHistory: generateSignalHistory(level, 10),
+            digital_inputs,
+            digital_outputs,
+            analog_inputs,
+            analog_outputs,
+            signalHistory: generateSignalHistory(level, 10)
           };
         });
+
         setDevices(enriched);
       })
       .catch(err => {
