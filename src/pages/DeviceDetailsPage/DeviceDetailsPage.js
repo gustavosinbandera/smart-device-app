@@ -1,5 +1,4 @@
-// src/pages/DeviceDetailsPage/DeviceDetailsPage.js
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   Box,
@@ -8,13 +7,44 @@ import {
   Button,
   Grid,
   Alert,
-  CircularProgress
+  CircularProgress,
+  Paper
 } from '@mui/material';
-import { useDeviceDetails } from '../../hooks/useDeviceDetails'; // ⬅ nuevo hook
+import { useDeviceDetails } from '../../hooks/useDeviceDetails';
 
 export default function DeviceDetailsPage() {
   const { deviceId } = useParams();
-  const { device, loading, error } = useDeviceDetails(deviceId); // ⬅ usa el hook correcto
+  const { device, loading, error } = useDeviceDetails(deviceId);
+
+  const [editableAliases, setEditableAliases] = useState([]);
+
+  useEffect(() => {
+    if (device?.aliases) {
+      // Clonar los aliases para edición
+      setEditableAliases(device.aliases.map(alias => ({
+        gpio: alias.gpio,
+        aliases: [...alias.aliases]
+      })));
+    }
+  }, [device]);
+
+  const handleGpioChange = (index, newGpio) => {
+    const updated = [...editableAliases];
+    updated[index].gpio = newGpio;
+    setEditableAliases(updated);
+  };
+
+  const handleAliasChange = (index, aliasIndex, newValue) => {
+    const updated = [...editableAliases];
+    updated[index].aliases[aliasIndex] = newValue;
+    setEditableAliases(updated);
+  };
+
+  const handleAddAlias = (index) => {
+    const updated = [...editableAliases];
+    updated[index].aliases.push('');
+    setEditableAliases(updated);
+  };
 
   if (loading) {
     return (
@@ -48,47 +78,74 @@ export default function DeviceDetailsPage() {
   }
 
   return (
-    <Box sx={{ p: 3, maxWidth: 700, mx: 'auto' }}>
+    <Box sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
       <Typography variant="h5" gutterBottom>
         Configurar aliases — {device.device_id}
       </Typography>
-      <Typography variant="subtitle2" gutterBottom>
-        Tipo de dispositivo: {device.type} — Registrado el: {new Date(device.registered_at).toLocaleString()}
+      <Typography variant="subtitle2" gutterBottom sx={{ mb: 3 }}>
+        {device.name || 'ESP32 sin nombre asignado'}
       </Typography>
 
-      {device.aliases.length === 0 && (
+      {editableAliases.length === 0 && (
         <Alert severity="info" sx={{ my: 2 }}>
           No hay aliases configurados aún. Puedes agregarlos abajo.
         </Alert>
       )}
 
       <Grid container spacing={2}>
-        {device.aliases.map(aliasRow => {
-          const label = `${aliasRow.gpio.toUpperCase()} — ${aliasRow.direction?.toUpperCase() || 'UNKNOWN'} ${aliasRow.type?.toUpperCase() || ''}`;
-          const value = Array.isArray(aliasRow.aliases)
-            ? aliasRow.aliases.join(', ')
-            : '';
+        {editableAliases.map((row, index) => (
+          <Grid item xs={12} key={index}>
+            <Paper elevation={3} sx={{ p: 3 }}>
+              <Typography variant="subtitle1" gutterBottom>
+                Configuración de GPIO #{index + 1}
+              </Typography>
 
-          return (
-            <Grid item xs={12} sm={6} key={aliasRow.gpio}>
               <TextField
+                select
+                label="GPIO"
+                value={row.gpio}
+                onChange={(e) => handleGpioChange(index, e.target.value)}
                 fullWidth
-                label={label}
-                value={value}
-                disabled
-              />
-            </Grid>
-          );
-        })}
+                SelectProps={{ native: true }}
+                sx={{ mb: 2 }}
+              >
+                <option value="">Selecciona un GPIO</option>
+                {[...Array(40).keys()].map(i => (
+                  <option key={i} value={`gpio-${i}`}>{`gpio-${i}`}</option>
+                ))}
+              </TextField>
+
+              {row.aliases.map((alias, aliasIndex) => (
+                <TextField
+                  key={aliasIndex}
+                  label={`Alias #${aliasIndex + 1}`}
+                  value={alias}
+                  onChange={(e) => handleAliasChange(index, aliasIndex, e.target.value)}
+                  fullWidth
+                  sx={{ mb: 1 }}
+                />
+              ))}
+
+              <Button
+                onClick={() => handleAddAlias(index)}
+                variant="outlined"
+                size="small"
+                sx={{ mt: 1 }}
+              >
+                ➕ Agregar alias
+              </Button>
+            </Paper>
+          </Grid>
+        ))}
       </Grid>
 
       <Box sx={{ mt: 4, display: 'flex', gap: 2 }}>
         <Button
           variant="contained"
-          component={Link}
-          to={`/devices/${deviceId}/edit`}
+          color="primary"
+          disabled
         >
-          Editar aliases
+          💾 Guardar cambios
         </Button>
         <Button component={Link} to="/devices">
           ← Volver
