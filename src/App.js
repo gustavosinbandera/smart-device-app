@@ -5,6 +5,8 @@ import LoginPage           from './pages/LoginPage/LoginPage';
 import CallbackPage        from './pages/CallbackPage/CallbackPage';
 import DeviceDetailsPage   from './pages/DeviceDetailsPage/DeviceDetailsPage';
 import DevicesPage         from './pages/DevicePage/DevicesPage';
+import DeviceMapPage       from './pages/DeviceMapPage/DeviceMapPage';
+
 
 function App() {
   return (
@@ -14,6 +16,7 @@ function App() {
         <Route path="/callback"       element={<CallbackPage />} />
         <Route path="/devices"        element={<DevicesPage />} />
         <Route path="/devices/:deviceId" element={<DeviceDetailsPage />} />
+        <Route path="/devices/:deviceId/map" element={<DeviceMapPage />} />
       </Routes>
     </Router>
   );

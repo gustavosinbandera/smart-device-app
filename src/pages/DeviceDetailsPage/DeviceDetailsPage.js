@@ -14,7 +14,7 @@ import {
   Paper,
   useTheme
 } from '@mui/material';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MemoryIcon from '@mui/icons-material/Memory';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
@@ -26,6 +26,7 @@ export default function DeviceDetailsPage() {
   const { deviceId } = useParams();
   const { device, loading, error } = useDeviceDetails(deviceId);
   const theme = useTheme();
+  const navigate = useNavigate();
 
   const [selectedGpio, setSelectedGpio] = useState('');
   const [aliasList, setAliasList] = useState([]);
@@ -56,6 +57,37 @@ export default function DeviceDetailsPage() {
     const updated = [...aliasList];
     updated.splice(index, 1);
     setAliasList(updated);
+  };
+
+  const handleSimulateGps = async () => {
+    const token = localStorage.getItem('id_token');
+    if (!token || !device?.device_id) {
+      alert('Falta token o device_id');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/simulate-gps`, {
+        method: 'POST',
+        headers: {
+          Authorization: token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ device_id: device.device_id })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Error en simulación');
+
+      alert(`✔️ Simulación exitosa: ${data.message}`);
+    } catch (err) {
+      console.error('Error simulando GPS:', err);
+      alert('Error al simular puntos GPS');
+    }
+  };
+
+  const handleViewMap = () => {
+    navigate(`/devices/${device.device_id}/map`);
   };
 
   const currentGpioInfo = device?.aliases.find(a => a.gpio === selectedGpio) || {};
@@ -136,6 +168,15 @@ export default function DeviceDetailsPage() {
               </Button>
               <Button component={Link} to="/devices" sx={{ ml: 2 }}>
                 ← Volver
+              </Button>
+            </Box>
+
+            <Box sx={{ mt: 4, display: 'flex', gap: 2 }}>
+              <Button onClick={handleSimulateGps} variant="outlined">
+                Simular ruta GPS
+              </Button>
+              <Button onClick={handleViewMap} variant="contained" color="secondary">
+                Ver en mapa
               </Button>
             </Box>
           </Box>

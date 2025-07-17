@@ -1,0 +1,16 @@
+.container {
+  padding: 1rem;
+  color: white;
+}
+.title {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+.controls {
+  margin-bottom: 1rem;
+}
+.controls button {
+  margin-right: 1rem;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+}
