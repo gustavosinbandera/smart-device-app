@@ -1,156 +1,205 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
   TextField,
   Button,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
   Grid,
-  Alert,
-  CircularProgress,
-  Paper
+  IconButton,
+  Divider,
+  Paper,
+  useTheme
 } from '@mui/material';
+import { useParams, Link } from 'react-router-dom';
+import DeleteIcon from '@mui/icons-material/Delete';
+import MemoryIcon from '@mui/icons-material/Memory';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+import FlashOnIcon from '@mui/icons-material/FlashOn';
+import DeviceThermostatIcon from '@mui/icons-material/DeviceThermostat';
 import { useDeviceDetails } from '../../hooks/useDeviceDetails';
 
 export default function DeviceDetailsPage() {
   const { deviceId } = useParams();
   const { device, loading, error } = useDeviceDetails(deviceId);
+  const theme = useTheme();
 
-  const [editableAliases, setEditableAliases] = useState([]);
+  const [selectedGpio, setSelectedGpio] = useState('');
+  const [aliasList, setAliasList] = useState([]);
 
   useEffect(() => {
-    if (device?.aliases) {
-      // Clonar los aliases para edición
-      setEditableAliases(device.aliases.map(alias => ({
-        gpio: alias.gpio,
-        aliases: [...alias.aliases]
-      })));
+    if (device && device.aliases.length > 0) {
+      setSelectedGpio(device.aliases[0].gpio);
     }
   }, [device]);
 
-  const handleGpioChange = (index, newGpio) => {
-    const updated = [...editableAliases];
-    updated[index].gpio = newGpio;
-    setEditableAliases(updated);
+  useEffect(() => {
+    if (device && selectedGpio) {
+      const gpioObj = device.aliases.find(item => item.gpio === selectedGpio);
+      if (gpioObj) {
+        setAliasList(gpioObj.aliases);
+      }
+    }
+  }, [selectedGpio, device]);
+
+  const handleAliasChange = (index, value) => {
+    const updated = [...aliasList];
+    updated[index] = value;
+    setAliasList(updated);
   };
 
-  const handleAliasChange = (index, aliasIndex, newValue) => {
-    const updated = [...editableAliases];
-    updated[index].aliases[aliasIndex] = newValue;
-    setEditableAliases(updated);
+  const addAlias = () => setAliasList([...aliasList, '']);
+  const removeAlias = (index) => {
+    const updated = [...aliasList];
+    updated.splice(index, 1);
+    setAliasList(updated);
   };
 
-  const handleAddAlias = (index) => {
-    const updated = [...editableAliases];
-    updated[index].aliases.push('');
-    setEditableAliases(updated);
-  };
-
-  if (loading) {
-    return (
-      <Box sx={{ p: 4, textAlign: 'center' }}>
-        <CircularProgress />
-        <Typography sx={{ mt: 2 }}>Cargando detalles…</Typography>
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box sx={{ p: 4 }}>
-        <Alert severity="error">❌ {error}</Alert>
-        <Button component={Link} to="/devices" sx={{ mt: 2 }}>
-          ← Volver a dispositivos
-        </Button>
-      </Box>
-    );
-  }
-
-  if (!device) {
-    return (
-      <Box sx={{ p: 4 }}>
-        <Alert severity="warning">No se encontró el dispositivo "{deviceId}"</Alert>
-        <Button component={Link} to="/devices" sx={{ mt: 2 }}>
-          ← Volver a dispositivos
-        </Button>
-      </Box>
-    );
-  }
+  const currentGpioInfo = device?.aliases.find(a => a.gpio === selectedGpio) || {};
 
   return (
-    <Box sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
+    <Box sx={{ p: 3 }}>
       <Typography variant="h5" gutterBottom>
-        Configurar aliases — {device.device_id}
-      </Typography>
-      <Typography variant="subtitle2" gutterBottom sx={{ mb: 3 }}>
-        {device.name || 'ESP32 sin nombre asignado'}
+        Configurar GPIO — {device?.device_id}
       </Typography>
 
-      {editableAliases.length === 0 && (
-        <Alert severity="info" sx={{ my: 2 }}>
-          No hay aliases configurados aún. Puedes agregarlos abajo.
-        </Alert>
-      )}
+      {loading && <Typography>Cargando...</Typography>}
+      {error && <Typography color="error">❌ {error}</Typography>}
+      {!device && !loading && <Typography>No se encontró el dispositivo.</Typography>}
 
-      <Grid container spacing={2}>
-        {editableAliases.map((row, index) => (
-          <Grid item xs={12} key={index}>
-            <Paper elevation={3} sx={{ p: 3 }}>
-              <Typography variant="subtitle1" gutterBottom>
-                Configuración de GPIO #{index + 1}
-              </Typography>
-
-              <TextField
-                select
-                label="GPIO"
-                value={row.gpio}
-                onChange={(e) => handleGpioChange(index, e.target.value)}
-                fullWidth
-                SelectProps={{ native: true }}
-                sx={{ mb: 2 }}
-              >
-                <option value="">Selecciona un GPIO</option>
-                {[...Array(40).keys()].map(i => (
-                  <option key={i} value={`gpio-${i}`}>{`gpio-${i}`}</option>
-                ))}
-              </TextField>
-
-              {row.aliases.map((alias, aliasIndex) => (
-                <TextField
-                  key={aliasIndex}
-                  label={`Alias #${aliasIndex + 1}`}
-                  value={alias}
-                  onChange={(e) => handleAliasChange(index, aliasIndex, e.target.value)}
-                  fullWidth
-                  sx={{ mb: 1 }}
-                />
-              ))}
-
-              <Button
-                onClick={() => handleAddAlias(index)}
-                variant="outlined"
-                size="small"
-                sx={{ mt: 1 }}
-              >
-                ➕ Agregar alias
-              </Button>
-            </Paper>
-          </Grid>
-        ))}
-      </Grid>
-
-      <Box sx={{ mt: 4, display: 'flex', gap: 2 }}>
-        <Button
-          variant="contained"
-          color="primary"
-          disabled
+      {device && (
+        <Box
+          sx={{
+            mt: 3,
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            gap: 3
+          }}
         >
-          💾 Guardar cambios
-        </Button>
-        <Button component={Link} to="/devices">
-          ← Volver
-        </Button>
-      </Box>
+          {/* LADO IZQUIERDO */}
+          <Box sx={{ flex: 1 }}>
+            <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
+              <InputLabel>Seleccionar GPIO</InputLabel>
+              <Select
+                label="Seleccionar GPIO"
+                value={selectedGpio}
+                onChange={(e) => setSelectedGpio(e.target.value)}
+              >
+                {device.aliases.map((a) => (
+                  <MenuItem key={a.gpio} value={a.gpio}>
+                    {a.gpio}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <Box
+              sx={{
+                maxHeight: 300,
+                overflowY: 'auto',
+                pr: 1,
+                mb: 2,
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: 2,
+                p: 2
+              }}
+            >
+              {aliasList.map((alias, index) => (
+                <Grid container spacing={1} alignItems="center" key={index} sx={{ mb: 1 }}>
+                  <Grid item xs>
+                    <TextField
+                      fullWidth
+                      label={`Alias ${index + 1}`}
+                      value={alias}
+                      onChange={(e) => handleAliasChange(index, e.target.value)}
+                      variant="outlined"
+                    />
+                  </Grid>
+                  <Grid item>
+                    <IconButton color="error" onClick={() => removeAlias(index)}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </Grid>
+                </Grid>
+              ))}
+              <Button onClick={addAlias} variant="outlined" size="small">
+                + Agregar alias
+              </Button>
+            </Box>
+
+            <Box sx={{ mt: 2 }}>
+              <Button variant="contained" color="primary">
+                Guardar cambios
+              </Button>
+              <Button component={Link} to="/devices" sx={{ ml: 2 }}>
+                ← Volver
+              </Button>
+            </Box>
+          </Box>
+
+          {/* LADO DERECHO — Estado actual */}
+          <Box
+            sx={{
+              flex: 1,
+              minWidth: 250,
+              bgcolor: theme.palette.mode === 'dark' ? '#1e1e1e' : '#f9f9f9',
+              p: 3,
+              borderRadius: 2,
+              border: '1px solid rgba(255,255,255,0.12)',
+              color: 'text.primary'
+            }}
+          >
+            <Typography variant="h6" gutterBottom>
+              Estado actual del GPIO
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <MemoryIcon sx={{ mr: 1 }} />
+              <Typography>
+                <strong>Dirección:</strong> {currentGpioInfo.direction || '—'}
+              </Typography>
+            </Box>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <SwapHorizIcon sx={{ mr: 1 }} />
+              <Typography>
+                <strong>Tipo:</strong> {currentGpioInfo.type || '—'}
+              </Typography>
+            </Box>
+
+            {currentGpioInfo.type === 'digital' && (
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <FlashOnIcon sx={{ mr: 1 }} />
+                <Typography>
+                  <strong>Estado:</strong>{' '}
+                  {currentGpioInfo.state === true ? 'Encendido' : 'Apagado'}
+                </Typography>
+              </Box>
+            )}
+
+            {currentGpioInfo.type === 'analog' && (
+              <>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <DeviceThermostatIcon sx={{ mr: 1 }} />
+                  <Typography>
+                    <strong>Lectura:</strong> {currentGpioInfo.sensor_value ?? '—'}
+                  </Typography>
+                </Box>
+
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <Typography sx={{ ml: 4 }}>
+                    <strong>Unidad:</strong> {currentGpioInfo.unit || '—'}
+                  </Typography>
+                </Box>
+              </>
+            )}
+          </Box>
+        </Box>
+      )}
     </Box>
   );
 }
