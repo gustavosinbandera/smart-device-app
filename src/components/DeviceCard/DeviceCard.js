@@ -12,11 +12,13 @@ import {
   Badge,
   Menu,
   MenuItem,
+  Tooltip,
   useTheme
 } from '@mui/material';
 import WifiIcon from '@mui/icons-material/Wifi';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import MapIcon from '@mui/icons-material/Map'; // <- NUEVO
 import { Sparklines, SparklinesLine } from 'react-sparklines';
 import { useNavigate } from 'react-router-dom';
 import styles from './DeviceCard.module.css';
@@ -37,6 +39,11 @@ export default function DeviceCard({ device }) {
     navigate(`/devices/${device.device_id}`);
   };
 
+  const goToMap = (e) => {
+    e.stopPropagation(); // Para que no dispare goToDetails
+    navigate(`/devices/${device.device_id}/map`);
+  };
+
   const level = device.signalLevel ?? 3;
 
   const wifiColors = [
@@ -48,6 +55,10 @@ export default function DeviceCard({ device }) {
     theme.palette.common.white
   ];
   const wifiColor = wifiColors[Math.min(level, 5)];
+
+  const formattedDate = device.registered_at && !isNaN(Date.parse(device.registered_at))
+    ? new Date(device.registered_at).toLocaleDateString()
+    : 'Fecha desconocida';
 
   return (
     <Card elevation={2} className={styles.card}>
@@ -122,11 +133,17 @@ export default function DeviceCard({ device }) {
         </CardContent>
       </CardActionArea>
 
-      <CardActions className={styles.footer}>
+      <CardActions className={styles.footer} sx={{ justifyContent: 'space-between' }}>
         <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center' }}>
           <CalendarTodayIcon fontSize="small" sx={{ mr: 0.5 }} />
-          {new Date(device.registered_at).toLocaleDateString()}
+          {formattedDate}
         </Typography>
+
+        <Tooltip title="Ver en mapa">
+          <IconButton onClick={goToMap} size="small">
+            <MapIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
       </CardActions>
     </Card>
   );

@@ -6,8 +6,6 @@ import CallbackPage        from './pages/CallbackPage/CallbackPage';
 import DeviceDetailsPage   from './pages/DeviceDetailsPage/DeviceDetailsPage';
 import DevicesPage         from './pages/DevicePage/DevicesPage';
 import DeviceMapPage       from './pages/DeviceMapPage/DeviceMapPage';
-
-
 function App() {
   return (
     <Router>

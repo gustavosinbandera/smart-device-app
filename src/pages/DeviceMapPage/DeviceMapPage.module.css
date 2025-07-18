@@ -10,11 +10,16 @@
   left: 10px;
   z-index: 1000;
   display: flex;
-  gap: 10px;
+  flex-direction: row;
+  gap: 12px;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 10px 15px;
+  border-radius: 8px;
 }
 
 .controls button {
-  background: rgba(0, 0, 0, 0.7);
+  background: #222;
   color: white;
   padding: 8px 12px;
   border: none;
@@ -24,5 +29,16 @@
 }
 
 .controls button:hover {
-  background: rgba(0, 0, 0, 0.9);
+  background: #444;
+}
+
+.slider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+}
+
+.slider input[type="range"] {
+  width: 120px;
 }

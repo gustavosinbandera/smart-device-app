@@ -1,119 +1,161 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Polyline, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import {
+  GoogleMap,
+  Marker,
+  DirectionsRenderer,
+  useJsApiLoader
+} from '@react-google-maps/api';
 import styles from './DeviceMapPage.module.css';
-import { getRouteFromOpenRouteService } from '../../services/openRouteService';
 
-const carIconUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAACvElEQVRYR+2WT4hNYRjGv+csNhYWIaItTkxMrKSRSJAkLTWE8ktpl2VHLZc9EaCwtJiYZzTGdk1DkQcsIS1snXyaAQNKQ9QiCl+KiAwMrmwy+3PO/M+9/n5ztdx8RYM/hR2gq63VswGOwMroLS9OrEAhQmvD5qt3Sc7AzuAhODqbGJ4LVRV4uEeAfIYoZ60M1p4GuwDdgKDnpXyY3dt9cDpoFhYH7yGAFi84b8LPsDlz9AgY2+wqUpYAC3Fz8MYdPHFAAeEHDM+Hylr8CxRwrwBZoTOLkUSJ+H+Rlmz34NT4Mp1X9nFwHMJ0I3XLpI0oP3A1k+7vKwqfxcYTf66MFU/Olt6X9wG5wGslM2T5Sh0XQGuL4K2VlfRQCI3k+LSTH7xuD06LfuTT93CCl3QNV9UMd5AW+VrAAXcy+QgEvUtGo8VYSwrOpbXAaNUjAy0cZ0ML5ZtaGaI9Bi81VZbB7kAOLfpFAIaV5ybAqLK2UanivHfxVw2cVXeZ3WeEahvTkePTOuYwFeZbqpJ5qI35dDIXX2m8EkAJiG3hrM7+7fdk2FgNGKoKwTXOw6kZ0E5U2doUXbtsndTkbUs6mcsl20rCWoY7GaY9Nf3piNvDRkKLPKh1s6SR0+PiEA8m3Uo0FfU6M7JBBL1SpND3bI0fRSsFCLtGtxAbKKFl7NnH81e8ZJD2QWzYb1ceL3lzk9k9X8qfhPZJmuRUXcnxFAAAAAElFTkSuQmCC';
+const BASE_POINT = { lat: 4.5321, lng: -75.6811 }; // Armenia, Quindío
 
-const carIcon = new L.Icon({
-  iconUrl: carIconUrl,
-  iconSize: [32, 32],
-  iconAnchor: [16, 16],
-});
-
-function AutoPan({ position }) {
-  const map = useMap();
-  useEffect(() => {
-    if (position) {
-      map.panTo(position);
-    }
-  }, [position, map]);
-  return null;
-}
-
-const DeviceMapPage = () => {
-  const [route, setRoute] = useState([]);
+function DeviceMapPage() {
+  const [directions, setDirections] = useState(null);
   const [position, setPosition] = useState(null);
+  const [routeCoords, setRouteCoords] = useState([]);
   const [index, setIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
+  const [speedFactor, setSpeedFactor] = useState(5); // 5x - 20x
+  const [heading, setHeading] = useState(0); // dirección en grados
   const intervalRef = useRef(null);
 
-  const BASE_POINT = [-34.605685, -58.381559]; // Obelisco
+  const speed = 4000 / speedFactor;
+
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY
+  });
 
   const generarPuntoAleatorio = () => {
     const deltaLat = (Math.random() - 0.5) * 0.01;
     const deltaLng = (Math.random() - 0.5) * 0.01;
-    return [BASE_POINT[0] + deltaLat, BASE_POINT[1] + deltaLng];
+    return { lat: BASE_POINT.lat + deltaLat, lng: BASE_POINT.lng + deltaLng };
   };
 
-  const obtenerNuevaRuta = async () => {
-    try {
-      const destino = generarPuntoAleatorio();
-      const nuevaRuta = await getRouteFromOpenRouteService([BASE_POINT, destino]);
-      const rutaConvertida = nuevaRuta.map(([lon, lat]) => [lat, lon]);
-      setRoute(rutaConvertida);
-      setPosition(rutaConvertida[0]);
-      setIndex(0);
-    } catch (err) {
-      console.error('Error al obtener ruta:', err.message);
-    }
+  const calcularHeading = (from, to) => {
+    const rad = Math.atan2(to.lng - from.lng, to.lat - from.lat);
+    return (rad * 180) / Math.PI; // en grados
+  };
+
+  const obtenerRutaGoogle = () => {
+    const origin = position || BASE_POINT;
+    const destino = generarPuntoAleatorio();
+
+    const directionsService = new window.google.maps.DirectionsService();
+    directionsService.route(
+      {
+        origin,
+        destination: destino,
+        travelMode: window.google.maps.TravelMode.DRIVING
+      },
+      (result, status) => {
+        if (status === window.google.maps.DirectionsStatus.OK) {
+          setDirections(result);
+
+          const steps = result.routes[0].legs[0].steps.flatMap((step) =>
+            step.path.map((latLng) => ({
+              lat: latLng.lat(),
+              lng: latLng.lng()
+            }))
+          );
+
+          setRouteCoords(steps);
+          setPosition(steps[0]);
+          setIndex(0);
+        } else {
+          console.error('Error obteniendo ruta:', result);
+        }
+      }
+    );
   };
 
   useEffect(() => {
-    obtenerNuevaRuta();
-  }, []);
+    if (isLoaded) obtenerRutaGoogle();
+  }, [isLoaded]);
 
   useEffect(() => {
-    if (!isPlaying || route.length === 0) return;
+    if (!isPlaying || routeCoords.length === 0) return;
 
     intervalRef.current = setInterval(() => {
       setIndex((prev) => {
         const next = prev + 1;
-        if (next >= route.length) {
+        if (next >= routeCoords.length) {
           clearInterval(intervalRef.current);
-          obtenerNuevaRuta(); // Obtener nueva ruta al final
+          obtenerRutaGoogle();
           return 0;
         }
-        setPosition(route[next]);
+
+        const current = routeCoords[prev];
+        const nextPoint = routeCoords[next];
+        const angle = calcularHeading(current, nextPoint);
+
+        setHeading(angle);
+        setPosition(nextPoint);
+
         return next;
       });
-    }, 800);
+    }, speed);
 
     return () => clearInterval(intervalRef.current);
-  }, [route, isPlaying]);
+  }, [routeCoords, isPlaying, speed]);
 
-  const handlePlayPause = () => {
-    setIsPlaying((prev) => !prev);
-  };
-
+  const handlePlayPause = () => setIsPlaying((prev) => !prev);
   const handleRestart = () => {
-    if (route.length > 0) {
-      setPosition(route[0]);
+    if (routeCoords.length > 0) {
+      setPosition(routeCoords[0]);
       setIndex(0);
     }
+  };
+
+  if (!isLoaded) return <div>Cargando mapa...</div>;
+
+  const rotatedCarIcon = {
+    path: 'M 0 -2 L 1 0 L 0 2 L -1 0 Z',
+    fillColor: '#ff0000',
+    fillOpacity: 1,
+    scale: 5,
+    strokeWeight: 1,
+    rotation: heading
   };
 
   return (
     <div className={styles.container}>
       <div className={styles.controls}>
-        <button onClick={handlePlayPause}>{isPlaying ? '⏸️ Pausar' : '▶️ Iniciar'}</button>
+        <button onClick={handlePlayPause}>
+          {isPlaying ? '⏸️ Pausar' : '▶️ Iniciar'}
+        </button>
         <button onClick={handleRestart}>🔁 Reiniciar</button>
+        <div className={styles.slider}>
+          <label>Velocidad:</label>
+          <input
+            type="range"
+            min="5"
+            max="20"
+            step="1"
+            value={speedFactor}
+            onChange={(e) => setSpeedFactor(Number(e.target.value))}
+          />
+          <span>{speedFactor}x</span>
+        </div>
       </div>
 
-      <MapContainer
-        center={BASE_POINT}
+      <GoogleMap
+        mapContainerStyle={{ width: '100%', height: '100vh' }}
+        center={position || BASE_POINT}
         zoom={15}
-        scrollWheelZoom={true}
-        zoomControl={true}
-        style={{ height: '100vh', width: '100%' }}
+        options={{ disableDefaultUI: false }}
       >
-        <TileLayer
-          attribution='&copy; OpenStreetMap contributors'
-          url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-        />
-
-        {route.length > 0 && <Polyline positions={route} color='blue' />}
         {position && (
-          <>
-            <Marker position={position} icon={carIcon} />
-            <AutoPan position={position} />
-          </>
+          <Marker position={position} icon={rotatedCarIcon} />
         )}
-      </MapContainer>
+        {directions && (
+          <DirectionsRenderer
+            directions={directions}
+            options={{ suppressMarkers: true }}
+          />
+        )}
+      </GoogleMap>
     </div>
   );
-};
+}
 
 export default DeviceMapPage;
