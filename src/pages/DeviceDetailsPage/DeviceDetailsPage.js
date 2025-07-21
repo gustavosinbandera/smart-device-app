@@ -1,3 +1,4 @@
+// src/pages/DeviceDetailsPage/DeviceDetailsPage.js
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -11,8 +12,7 @@ import {
   Grid,
   IconButton,
   Divider,
-  Paper,
-  useTheme
+  useTheme,
 } from '@mui/material';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -20,65 +20,82 @@ import MemoryIcon from '@mui/icons-material/Memory';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import FlashOnIcon from '@mui/icons-material/FlashOn';
 import DeviceThermostatIcon from '@mui/icons-material/DeviceThermostat';
+
 import { useDeviceDetails } from '../../hooks/useDeviceDetails';
+import { updateDeviceAliases } from '../../services/deviceService';   // ← nuevo import
 
 export default function DeviceDetailsPage() {
   const { deviceId } = useParams();
-  const { device, loading, error } = useDeviceDetails(deviceId);
+  const { device, loading, error /*, refetch*/ } = useDeviceDetails(deviceId); // ← añade refetch si tu hook lo expone
   const theme = useTheme();
   const navigate = useNavigate();
 
   const [selectedGpio, setSelectedGpio] = useState('');
   const [aliasList, setAliasList] = useState([]);
 
+  /* ---------- efectos ---------- */
   useEffect(() => {
-    if (device && device.aliases.length > 0) {
-      setSelectedGpio(device.aliases[0].gpio);
-    }
+    if (device?.aliases?.length) setSelectedGpio(device.aliases[0].gpio);
   }, [device]);
 
   useEffect(() => {
     if (device && selectedGpio) {
-      const gpioObj = device.aliases.find(item => item.gpio === selectedGpio);
-      if (gpioObj) {
-        setAliasList(gpioObj.aliases);
-      }
+      const gpioObj = device.aliases.find((i) => i.gpio === selectedGpio);
+      setAliasList(gpioObj ? gpioObj.aliases : []);
     }
   }, [selectedGpio, device]);
 
+  /* ---------- handlers UI ---------- */
   const handleAliasChange = (index, value) => {
     const updated = [...aliasList];
     updated[index] = value;
     setAliasList(updated);
   };
 
-  const addAlias = () => setAliasList([...aliasList, '']);
-  const removeAlias = (index) => {
-    const updated = [...aliasList];
-    updated.splice(index, 1);
-    setAliasList(updated);
+  const addAlias   = () => setAliasList([...aliasList, '']);
+  const removeAlias = (index) =>
+    setAliasList(aliasList.filter((_, i) => i !== index));
+
+  /* ---------- guardar cambios ---------- */
+  const handleSave = async () => {
+    try {
+      await updateDeviceAliases(device.device_id, selectedGpio, aliasList);
+      alert('✔️ Alias guardados');
+
+      // si tu hook devuelve refetch() descomenta:
+      // await refetch();
+
+      // sino, actualiza el estado local para ver el cambio al instante
+      // setDevice(prev => ({
+      //   ...prev,
+      //   aliases: prev.aliases.map(a =>
+      //     a.gpio === selectedGpio ? { ...a, aliases: aliasList } : a
+      //   ),
+      // }));
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Error al guardar aliases');
+    }
   };
 
+  /* ---------- extra ---------- */
   const handleSimulateGps = async () => {
     const token = localStorage.getItem('id_token');
     if (!token || !device?.device_id) {
       alert('Falta token o device_id');
       return;
     }
-
     try {
       const res = await fetch(`${process.env.REACT_APP_API_URL}/simulate-gps`, {
         method: 'POST',
         headers: {
           Authorization: token,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ device_id: device.device_id })
+        body: JSON.stringify({ device_id: device.device_id }),
       });
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Error en simulación');
-
       alert(`✔️ Simulación exitosa: ${data.message}`);
     } catch (err) {
       console.error('Error simulando GPS:', err);
@@ -86,12 +103,12 @@ export default function DeviceDetailsPage() {
     }
   };
 
-  const handleViewMap = () => {
-    navigate(`/devices/${device.device_id}/map`);
-  };
+  const handleViewMap = () => navigate(`/devices/${device.device_id}/map`);
 
-  const currentGpioInfo = device?.aliases.find(a => a.gpio === selectedGpio) || {};
+  const currentGpioInfo =
+    device?.aliases.find((a) => a.gpio === selectedGpio) || {};
 
+  /* ---------- render ---------- */
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h5" gutterBottom>
@@ -108,10 +125,10 @@ export default function DeviceDetailsPage() {
             mt: 3,
             display: 'flex',
             flexDirection: { xs: 'column', md: 'row' },
-            gap: 3
+            gap: 3,
           }}
         >
-          {/* LADO IZQUIERDO */}
+          {/* -------- LADO IZQUIERDO -------- */}
           <Box sx={{ flex: 1 }}>
             <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
               <InputLabel>Seleccionar GPIO</InputLabel>
@@ -136,11 +153,17 @@ export default function DeviceDetailsPage() {
                 mb: 2,
                 border: '1px solid rgba(255,255,255,0.1)',
                 borderRadius: 2,
-                p: 2
+                p: 2,
               }}
             >
               {aliasList.map((alias, index) => (
-                <Grid container spacing={1} alignItems="center" key={index} sx={{ mb: 1 }}>
+                <Grid
+                  container
+                  spacing={1}
+                  alignItems="center"
+                  key={index}
+                  sx={{ mb: 1 }}
+                >
                   <Grid item xs>
                     <TextField
                       fullWidth
@@ -151,7 +174,10 @@ export default function DeviceDetailsPage() {
                     />
                   </Grid>
                   <Grid item>
-                    <IconButton color="error" onClick={() => removeAlias(index)}>
+                    <IconButton
+                      color="error"
+                      onClick={() => removeAlias(index)}
+                    >
                       <DeleteIcon />
                     </IconButton>
                   </Grid>
@@ -163,7 +189,11 @@ export default function DeviceDetailsPage() {
             </Box>
 
             <Box sx={{ mt: 2 }}>
-              <Button variant="contained" color="primary">
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleSave}   // ← botón conectado
+              >
                 Guardar cambios
               </Button>
               <Button component={Link} to="/devices" sx={{ ml: 2 }}>
@@ -175,13 +205,17 @@ export default function DeviceDetailsPage() {
               <Button onClick={handleSimulateGps} variant="outlined">
                 Simular ruta GPS
               </Button>
-              <Button onClick={handleViewMap} variant="contained" color="secondary">
+              <Button
+                onClick={handleViewMap}
+                variant="contained"
+                color="secondary"
+              >
                 Ver en mapa
               </Button>
             </Box>
           </Box>
 
-          {/* LADO DERECHO — Estado actual */}
+          {/* -------- LADO DERECHO -------- */}
           <Box
             sx={{
               flex: 1,
@@ -190,7 +224,7 @@ export default function DeviceDetailsPage() {
               p: 3,
               borderRadius: 2,
               border: '1px solid rgba(255,255,255,0.12)',
-              color: 'text.primary'
+              color: 'text.primary',
             }}
           >
             <Typography variant="h6" gutterBottom>
@@ -227,7 +261,8 @@ export default function DeviceDetailsPage() {
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                   <DeviceThermostatIcon sx={{ mr: 1 }} />
                   <Typography>
-                    <strong>Lectura:</strong> {currentGpioInfo.sensor_value ?? '—'}
+                    <strong>Lectura:</strong>{' '}
+                    {currentGpioInfo.sensor_value ?? '—'}
                   </Typography>
                 </Box>
 
