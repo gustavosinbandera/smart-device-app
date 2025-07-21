@@ -17,11 +17,15 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import HomeIcon from '@mui/icons-material/Home';
 import DevicesIcon from '@mui/icons-material/Devices';
 import SettingsIcon from '@mui/icons-material/Settings';
+import MapIcon from '@mui/icons-material/Map';
 import DeviceCard from '../../components/DeviceCard/DeviceCard';
+import GenericCard from '../../components/GenericCard/GenericCard';
 import { useDevices } from '../../hooks/useDevices';
 import Loader from '../../components/Loader/Loader';
 import Alert from '@mui/material/Alert';
 import styles from './DevicesPage.module.css';
+import AssessmentIcon from '@mui/icons-material/Assessment';
+import ToggleOnIcon from '@mui/icons-material/ToggleOn';
 
 export default function DevicesPage() {
   const navigate = useNavigate();
@@ -108,15 +112,7 @@ export default function DevicesPage() {
         {!loading && !error && devices.length > 0 && (
           <Box
             ref={esp32RowRef}
-            className={styles.scrollRow}
-            onMouseDown={e => startDrag(e, esp32RowRef)}
-            onMouseUp={() => endDrag(esp32RowRef)}
-            onMouseLeave={() => endDrag(esp32RowRef)}
-            onMouseMove={e => onDrag(e, esp32RowRef)}
-            onTouchStart={e => startDrag(e, esp32RowRef)}
-            onTouchEnd={() => endDrag(esp32RowRef)}
-            onTouchMove={e => onDrag(e, esp32RowRef)}
-          >
+            className={styles.scrollRow}>
             {devices.map(device => (
               <Box key={device.device_id} className={styles.cardWrapper}>
                 <DeviceCard device={device} />
@@ -124,6 +120,36 @@ export default function DevicesPage() {
             ))}
           </Box>
         )}
+
+        {/* Nueva sección de Opciones */}
+        <Typography variant="h5" className={styles.sectionTitle}>Opciones</Typography>
+        <Box className={styles.scrollRow}>
+          <Box className={styles.cardWrapper}>
+            <GenericCard
+              title="Mapa General"
+              icon={<MapIcon style={{ color: 'white' }} />}
+              onClick={() => navigate('/mapa-general')}
+            />
+          </Box>
+
+          <Box className={styles.cardWrapper}>
+            <GenericCard
+              title="Reportes"
+              icon={<AssessmentIcon />}
+              onClick={() => navigate('/reportes')}
+            />
+          </Box>
+
+          <Box className={styles.cardWrapper}>
+            <GenericCard
+              title="Control"
+              icon={<ToggleOnIcon />}
+              onClick={() => navigate('/control')}
+            />
+          </Box>
+
+
+        </Box>
       </Box>
 
       <BottomNavigation
